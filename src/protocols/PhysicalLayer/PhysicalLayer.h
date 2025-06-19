@@ -295,6 +295,12 @@ class PhysicalLayer {
     virtual int16_t standby(uint8_t mode);
 
     /*!
+      \brief Sets module to a specific standby mode with or w/o wake up.
+      \returns \ref status_codes
+    */
+    virtual int16_t standby(uint8_t mode, bool wakeup);
+
+    /*!
       \brief Sets module to received mode using its default configuration.
       \returns \ref status_codes
     */

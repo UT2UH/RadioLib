@@ -127,6 +127,12 @@ int16_t PhysicalLayer::standby(uint8_t mode) {
   return(RADIOLIB_ERR_UNSUPPORTED);
 }
 
+int16_t PhysicalLayer::standby(uint8_t mode, bool wakeup) {
+  (void)mode;
+  (void)wakeup;
+  return(RADIOLIB_ERR_UNSUPPORTED);
+}
+
 int16_t PhysicalLayer::startReceive() {
   return(RADIOLIB_ERR_UNSUPPORTED);
 }
