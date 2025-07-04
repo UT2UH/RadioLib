@@ -5,7 +5,7 @@
 
 // first you have to set your radio model and pin configuration
 // this is provided just as a default example
-SX1278 radio = new Module(10, 2, 9, 3);
+SX1262 radio = new Module(8, 14, 12, 13);
 
 // if you have RadioBoards (https://github.com/radiolib-org/RadioBoards)
 // and are using one of the supported boards, you can do the following:
@@ -17,7 +17,7 @@ Radio radio = new RadioModule();
 */
 
 // how often to send an uplink - consider legal & FUP constraints - see notes
-const uint32_t uplinkIntervalSeconds = 5UL * 60UL;    // minutes x seconds
+const uint32_t uplinkIntervalSeconds = 1UL * 60UL;    // minutes x seconds
 
 // joinEUI - previous versions of LoRaWAN called this AppEUI
 // for development purposes you can use all zeros - see wiki for details
@@ -34,14 +34,22 @@ const uint32_t uplinkIntervalSeconds = 5UL * 60UL;    // minutes x seconds
 #define RADIOLIB_LORAWAN_NWK_KEY   0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x-- 
 #endif
 
+#ifndef RADIOLIB_LORAWAN_MC_DEV_ADDR   // Replace with your Multicast Device Address
+#define RADIOLIB_LORAWAN_MC_DEV_ADDR   0x---------------
+#endif
+#ifndef RADIOLIB_LORAWAN_MC_APP_SKEY   // Replace with your Multicast App SKey 
+#define RADIOLIB_LORAWAN_MC_APP_SKEY   0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x-- 
+#endif
+#ifndef RADIOLIB_LORAWAN_MC_NWK_SKEY   // Put your Multicast Nwk SKey here
+#define RADIOLIB_LORAWAN_MC_NWK_SKEY   0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x--, 0x-- 
+#endif
+
 // for the curious, the #ifndef blocks allow for automated testing &/or you can
 // put your EUI & keys in to your platformio.ini - see wiki for more tips
 
-// regional choices: EU868, US915, AU915, AS923, AS923_2, AS923_3, AS923_4, IN865, KR920, CN470
+// regional choices: EU868, US915, AU915, AS923, AS923_2, AS923_3, AS923_4, IN865, KR920, CN500
 const LoRaWANBand_t Region = EU868;
-
-// subband choice: for US915/AU915 set to 2, for CN470 set to 1, otherwise leave on 0
-const uint8_t subBand = 0;
+const uint8_t subBand = 0;  // For US915, change this to 2, otherwise leave on 0
 
 // ============================================================================
 // Below is to support the sketch - only make changes if the notes say so ...
@@ -51,6 +59,9 @@ uint64_t joinEUI =   RADIOLIB_LORAWAN_JOIN_EUI;
 uint64_t devEUI  =   RADIOLIB_LORAWAN_DEV_EUI;
 uint8_t appKey[] = { RADIOLIB_LORAWAN_APP_KEY };
 uint8_t nwkKey[] = { RADIOLIB_LORAWAN_NWK_KEY };
+uint32_t mcDevAddr =  RADIOLIB_LORAWAN_MC_DEV_ADDR;
+uint8_t mcAppSKey[] = { RADIOLIB_LORAWAN_MC_APP_SKEY };
+uint8_t mcNwkSKey[] = { RADIOLIB_LORAWAN_MC_NWK_SKEY };
 
 // create the LoRaWAN node
 LoRaWANNode node(&radio, &Region, subBand);
@@ -138,21 +149,6 @@ void arrayDump(uint8_t *buffer, uint16_t len) {
     Serial.print(b, HEX);
   }
   Serial.println();
-}
-
-// Custom delay function:
-// Communication over LoRaWAN includes a lot of delays.
-// By default, RadioLib will use the Arduino delay() function,
-// which will waste a lot of power. However, you can put your
-// microcontroller to sleep instead by customizing the function below,
-// and providing it to RadioLib via "node.setSleepFunction".
-// NOTE: You ahve to ensure that this function is timed precisely, and
-//       does actually wait for the amount of time specified!
-//       Failure to do so will result in missed downlinks or failed join!
-void customDelay(RadioLibTime_t ms) {
-  // this is just an example, so we use the Arduino delay() function,
-  // but you can put your microcontroller to sleep here
-  ::delay(ms);
 }
 
 #endif

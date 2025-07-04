@@ -1316,11 +1316,12 @@ size_t SX126x::getPacketLength(bool update) {
 size_t SX126x::getPacketLength(bool update, uint8_t* offset) {
   (void)update;
 
-  // in implicit mode, return the cached value
-  if((getPacketType() == RADIOLIB_SX126X_PACKET_TYPE_LORA) && (this->headerType == RADIOLIB_SX126X_LORA_HEADER_IMPLICIT)) {
+  // in implicit mode, return the cached value if the offset was not requested
+  if((getPacketType() == RADIOLIB_SX126X_PACKET_TYPE_LORA) && (this->headerType == RADIOLIB_SX126X_LORA_HEADER_IMPLICIT) && (!offset)) {
     return(this->implicitLen);
   }
 
+  // if offset was requested, or in explicit mode, we always have to perform the SPI transaction
   uint8_t rxBufStatus[2] = {0, 0};
   this->mod->SPIreadStream(RADIOLIB_SX126X_CMD_GET_RX_BUFFER_STATUS, rxBufStatus, 2);
 
@@ -1554,6 +1555,10 @@ int16_t SX126x::stageMode(RadioModeType_t mode, RadioModeConfig_t* cfg) {
       state = startReceiveCommon(cfg->receive.timeout, cfg->receive.irqFlags, cfg->receive.irqMask);
       RADIOLIB_ASSERT(state);
 
+      // if max(uint32_t) is used, revert to RxContinuous
+      if(cfg->receive.timeout == 0xFFFFFFFF) {
+        cfg->receive.timeout = 0xFFFFFF;
+      }
       this->rxTimeout = cfg->receive.timeout;
     } break;
   
@@ -1862,20 +1867,12 @@ int16_t SX126x::setRx(uint32_t timeout) {
 }
 
 int16_t SX126x::setCad(uint8_t symbolNum, uint8_t detPeak, uint8_t detMin, uint8_t exitMode, RadioLibTime_t timeout) {
-  // default CAD parameters are shown in Semtech AN1200.48, page 41.
-  const uint8_t detPeakValues[6] = { 22, 22, 24, 25, 26, 30};
-
-  // CAD parameters aren't available for SF-6. Just to be safe.
-  if(this->spreadingFactor < 7) {
-    this->spreadingFactor = 7;
-  } else if(this->spreadingFactor > 12) {
-    this->spreadingFactor = 12;
-  }
+  // default CAD parameters are selected according to recommendations on Semtech DS.SX1261-2.W.APP rev. 1.1, page 92.
 
   // build the packet with default configuration
   uint8_t data[7];
-  data[0] = RADIOLIB_SX126X_CAD_ON_2_SYMB;
-  data[1] = detPeakValues[this->spreadingFactor - 7];
+  data[0] = RADIOLIB_SX126X_CAD_ON_4_SYMB;
+  data[1] = this->spreadingFactor + 13;
   data[2] = RADIOLIB_SX126X_CAD_PARAM_DET_MIN;
   data[3] = RADIOLIB_SX126X_CAD_GOTO_STDBY;
   uint32_t timeout_raw = (float)timeout / 15.625f;

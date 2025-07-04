@@ -449,7 +449,22 @@
 #define RADIOLIB_LR11X0_GFSK_WHITENING_ENABLED                  (0x01UL << 0)   //  7     0                enabled
 
 // RADIOLIB_LR11X0_CMD_SET_TX_PARAMS
-#define RADIOLIB_LR11X0_PA_RAMP_48U                             (0x02UL << 0)   //  7     0     PA ramp time: 48 us
+#define RADIOLIB_LR11X0_PA_RAMP_16U                             (0x00UL << 0)   //  7     0     PA ramp time: 16 us
+#define RADIOLIB_LR11X0_PA_RAMP_32U                             (0x01UL << 0)   //  7     0                   32 us
+#define RADIOLIB_LR11X0_PA_RAMP_48U                             (0x02UL << 0)   //  7     0                   48 us
+#define RADIOLIB_LR11X0_PA_RAMP_64U                             (0x03UL << 0)   //  7     0                   64 us
+#define RADIOLIB_LR11X0_PA_RAMP_80U                             (0x04UL << 0)   //  7     0                   80 us
+#define RADIOLIB_LR11X0_PA_RAMP_96U                             (0x05UL << 0)   //  7     0                   96 us
+#define RADIOLIB_LR11X0_PA_RAMP_112U                            (0x06UL << 0)   //  7     0                   112 us
+#define RADIOLIB_LR11X0_PA_RAMP_128U                            (0x07UL << 0)   //  7     0                   128 us
+#define RADIOLIB_LR11X0_PA_RAMP_144U                            (0x08UL << 0)   //  7     0                   144 us
+#define RADIOLIB_LR11X0_PA_RAMP_160U                            (0x09UL << 0)   //  7     0                   160 us
+#define RADIOLIB_LR11X0_PA_RAMP_176U                            (0x0AUL << 0)   //  7     0                   176 us
+#define RADIOLIB_LR11X0_PA_RAMP_192U                            (0x0BUL << 0)   //  7     0                   192 us
+#define RADIOLIB_LR11X0_PA_RAMP_208U                            (0x0CUL << 0)   //  7     0                   208 us
+#define RADIOLIB_LR11X0_PA_RAMP_240U                            (0x0DUL << 0)   //  7     0                   240 us
+#define RADIOLIB_LR11X0_PA_RAMP_272U                            (0x0EUL << 0)   //  7     0                   272 us
+#define RADIOLIB_LR11X0_PA_RAMP_304U                            (0x0FUL << 0)   //  7     0                   304 us
 
 // RADIOLIB_LR11X0_CMD_SET_RX_TX_FALLBACK_MODE
 #define RADIOLIB_LR11X0_FALLBACK_MODE_STBY_RC                   (0x01UL << 0)   //  1     0     fallback mode after Rx/Tx: standby with RC
@@ -1340,6 +1355,7 @@ class LR11x0: public PhysicalLayer {
     /*!
       \brief Query modem for the packet length of received payload.
       \param update Update received packet length. Will return cached value when set to false.
+      \param offset Pointer to a variable that will hold the receive packet's offset in the RX buffer
       \returns Length of last received packet in bytes.
     */
     size_t getPacketLength(bool update, uint8_t* offset);
@@ -1615,6 +1631,14 @@ class LR11x0: public PhysicalLayer {
   protected:
 #endif
     Module* getMod() override;
+
+    // LR11x0 command helpers
+    /*!
+      \brief Round up a PA power ramp time to register value
+      \param rampTimeUs Ramp time in microseconds
+      \returns Register value of rounded ramp time
+    */
+    uint8_t roundRampTime(uint32_t rampTimeUs);
 
     // LR11x0 SPI command implementations
     int16_t writeRegMem32(uint32_t addr, const uint32_t* data, size_t len);
