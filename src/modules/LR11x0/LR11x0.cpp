@@ -682,6 +682,24 @@ int16_t LR11x0::setBandwidth(float bw, bool high) {
     // check allowed bandwidth values
     uint8_t bw_div2 = bw / 2 + 0.01;
     switch (bw_div2)  {
+      case 3: // 7.8:
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_7_8;
+        break;
+      case 5: // 10.42
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_10_42;
+        break;
+      case 7: // 15.6:
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_15_6;
+        break;
+      case 10: // 20.83
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_20_83;
+        break;
+      case 15: // 31.25:
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_31_25;
+        break;
+      case 20: // 41.67
+        this->bandwidth = RADIOLIB_LR11X0_LORA_BW_41_67;
+        break;
       case 31: // 62.5:
         this->bandwidth = RADIOLIB_LR11X0_LORA_BW_62_5;
         break;
@@ -734,10 +752,11 @@ int16_t LR11x0::setCodingRate(uint8_t cr, bool longInterleave) {
     return(RADIOLIB_ERR_WRONG_MODEM);
   }
 
-  RADIOLIB_CHECK_RANGE(cr, 5, 8, RADIOLIB_ERR_INVALID_CODING_RATE);
+  RADIOLIB_CHECK_RANGE(cr, 4, 8, RADIOLIB_ERR_INVALID_CODING_RATE);
 
   if(longInterleave) {
     switch(cr) {
+      case 4:
       case 5:
       case 6:
         this->codingRate = cr;
