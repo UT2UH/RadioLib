@@ -8,6 +8,7 @@
 LR2021::LR2021(Module* mod) : LRxxxx(mod) {
   this->freqStep = RADIOLIB_LR2021_FREQUENCY_STEP_SIZE;
   this->maxPacketLength = RADIOLIB_LR2021_MAX_PACKET_LENGTH;
+  this->implicitLen = RADIOLIB_LR2021_MAX_PACKET_LENGTH;
   this->irqMap[RADIOLIB_IRQ_TX_DONE] = RADIOLIB_LR2021_IRQ_TX_DONE;
   this->irqMap[RADIOLIB_IRQ_RX_DONE] = RADIOLIB_LR2021_IRQ_RX_DONE;
   this->irqMap[RADIOLIB_IRQ_PREAMBLE_DETECTED] = RADIOLIB_LR2021_IRQ_PREAMBLE_DETECTED;
@@ -867,7 +868,8 @@ int16_t LR2021::stageMode(RadioModeType_t mode, RadioModeConfig_t* cfg) {
 
       // set implicit mode and expected len if applicable
       if((this->headerType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT) && (modem == RADIOLIB_LR2021_PACKET_TYPE_LORA)) {
-        state = setLoRaPacketParams(this->preambleLengthLoRa, this->headerType, this->implicitLen, this->crcTypeLoRa, this->invertIQEnabled);
+        state = setLoRaPacketParams(this->preambleLengthLoRa, this->headerType, 
+          (this->packetType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH, this->crcTypeLoRa, this->invertIQEnabled);
         RADIOLIB_ASSERT(state);
       }
 
