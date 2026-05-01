@@ -997,6 +997,14 @@ int16_t LR2021::explicitHeader() {
   return(this->setLoRaHeaderType(RADIOLIB_LR2021_LORA_HEADER_EXPLICIT));
 }
 
+int16_t LR2021::setRegulatorLDO() {
+  return(this->setRegMode(RADIOLIB_LR2021_REG_MODE_SIMO_OFF));
+}
+
+int16_t LR2021::setRegulatorDCDC() {
+  return(this->setRegMode(RADIOLIB_LR2021_REG_MODE_SIMO_NORMAL));
+}
+
 int16_t LR2021::setNodeAddress(uint8_t nodeAddr) {
   // check active modem
   uint8_t type = RADIOLIB_LR2021_PACKET_TYPE_NONE;
