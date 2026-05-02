@@ -13,7 +13,11 @@ int16_t LR2021::setBpskModulationParams(uint32_t bitRate, uint8_t pulseShape, bo
     (uint8_t)((bitRate >> 8) & 0xFF), (uint8_t)(bitRate & 0xFF),
     (uint8_t)((pulseShape << 4) | ((uint8_t)diff << 2) | (diffInit & 0x03)),
   };
-  return(this->SPIcommand(RADIOLIB_LR2021_CMD_SET_BPSK_MODULATION_PARAMS, true, buff, sizeof(buff)));
+  int16_t state = this->SPIcommand(RADIOLIB_LR2021_CMD_SET_BPSK_MODULATION_PARAMS, true, buff, sizeof(buff));
+  if (!this->regulatorLDO && !this->highFreq) {
+    state = this->workaroundDCDCconfigure();
+  }
+  return(state);
 }
 
 int16_t LR2021::setBpskPacketParams(uint8_t payloadLen, uint8_t mode, bool sigFoxControlMsg, uint8_t sigFoxRank) {

@@ -534,6 +534,9 @@
 #define RADIOLIB_LR2021_TX_TEST_MODE_CW                         (0x02UL << 0)   //  7     0                   continuous wave
 #define RADIOLIB_LR2021_TX_TEST_MODE_PRBS9                      (0x03UL << 0)   //  7     0                   pseudo-random bits
 
+#define RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK        (0x0FUL << 20 )
+#define RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK        (0x0FUL << 16 )
+
 #endif
 
 #endif

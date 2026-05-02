@@ -734,12 +734,12 @@ class LR2021: public LRxxxx {
       \returns \ref status_codes
     */
     int16_t getLoRaRxHeaderInfo(uint8_t* cr, bool* hasCRC);
-
+    
 #if !RADIOLIB_GODMODE && !RADIOLIB_LOW_LEVEL
   protected:
 #endif
     Module* getMod() override;
-    
+
 #if !RADIOLIB_GODMODE
   protected:
 #endif
@@ -752,6 +752,7 @@ class LR2021: public LRxxxx {
     bool highFreq = false;
     uint8_t gainModeLf = RADIOLIB_LR2021_RX_BOOST_LF;
     uint8_t gainModeHf = RADIOLIB_LR2021_RX_BOOST_HF;
+    bool regulatorLDO = false;
 
     // cached FLRC parameters
     uint16_t bitRateFlrc = 0;
@@ -900,6 +901,61 @@ class LR2021: public LRxxxx {
 
     // test commands
     int16_t setTxTestMode(uint8_t mode);
+
+    uint32_t pll_step_to_hz( uint32_t pll_steps );
+    
+    /**
+     * @brief Get the RF frequency configured
+     * @param [out] frequency The RF frequency, in Hz
+     * @return Operation status
+     */
+    int16_t workaroundDCDCCgetRfFrequency(uint32_t* frequency);
+
+    // These functions must be used only in the context of DCDC workaround.
+    /**
+     * @brief Set the DCDC regulator frequency
+     * @param frequency [in] The frequency to set, expressed in Hz
+     * @return Operation status
+     */
+    int16_t workaroundDCDCsetFrequency(uint32_t frequency);
+
+    /**
+     * @brief Reset DCDC regulator internal value to appropriate configuration
+     * This workaround must be called after each @ref LR2021::config(modem) call
+     * @return Operation status
+     * @see LR2021::config, LR2021::workaroundDCDCconfigure
+     */
+    int16_t workaroundDCDCreset();
+
+    /**
+     * @brief Configure DCDC regulator internal value for specific operations
+     * This workaround must be called if all the following is true:
+     * - Rx operations are intended
+     * - @ref LR20XX_SYSTEM_REG_MODE_DCDC is used
+     * - sub GHz operations are intended
+     * This workaround must be called after each of the following commands:
+     * - @ref LR2021::setFlrcModulationParams
+     * - @ref LR2021::setGfskModulationParams
+     * - @ref LR2021::setLoRaModulationParams
+     * - @ref LR2021::setOokModulationParams
+     * - @ref LR2021::setOqpskParams
+     * - @ref LR2021::setBpskModulationParams
+     * - @ref LR2021::setRxPath
+     * @return Operation status
+     * @see LR2021::workaroundDCDCreset, 
+     */
+    int16_t workaroundDCDCconfigure();
+
+    /**
+     * @brief Store the LoRa DCDC configuration in retention memory
+     * Calling this function allows to store the DCDC new reset value or configuration during sleep mode.
+     * This helper function internally calls @ref LR2021::setAdditionalRegToRetain with the appropriate register
+     * address.
+     * @param slot Index in the storage list. Allowed values [0:31]
+     * @return Operation status
+     * @see LR2021::setAdditionalRegToRetain, LR2021::workaroundDCDCreset, LR2021::workaroundDCDCconfigure
+     */
+    int16_t workaroundDCDCstoreRetentionMem(uint8_t slot);
 };
 
 #endif
