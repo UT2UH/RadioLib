@@ -367,18 +367,22 @@
 #define RADIOLIB_LR2021_PACKET_TYPE_NONE                        (0xFFUL << 0)   //  2     0                  none
 
 // RADIOLIB_LR2021_CMD_SET_LORA_MODULATION_PARAMS
+#define RADIOLIB_LR2021_LORA_BW_7                               (0x00UL << 0)   //  7     0     LoRa bandwidth:  7.8  kHz ?
+#define RADIOLIB_LR2021_LORA_BW_15                              (0x01UL << 0)   //  7     0                     15.6  kHz ?
 #define RADIOLIB_LR2021_LORA_BW_31                              (0x02UL << 0)   //  3     0     LoRa bandwidth: 31.25 kHz
-#define RADIOLIB_LR2021_LORA_BW_41                              (0x0AUL << 0)   //  3     0                     41.67 kHz
-#define RADIOLIB_LR2021_LORA_BW_83                              (0x0BUL << 0)   //  3     0                     83.34 kHz
 #define RADIOLIB_LR2021_LORA_BW_62                              (0x03UL << 0)   //  3     0                     62.50 kHz
 #define RADIOLIB_LR2021_LORA_BW_125                             (0x04UL << 0)   //  3     0                     125 kHz
 #define RADIOLIB_LR2021_LORA_BW_250                             (0x05UL << 0)   //  3     0                     250 kHz
 #define RADIOLIB_LR2021_LORA_BW_500                             (0x06UL << 0)   //  3     0                     500 kHz
 #define RADIOLIB_LR2021_LORA_BW_1000                            (0x07UL << 0)   //  3     0                     1000 kHz
-#define RADIOLIB_LR2021_LORA_BW_812                             (0x0FUL << 0)   //  3     0                     812 kHz
-#define RADIOLIB_LR2021_LORA_BW_406                             (0x0EUL << 0)   //  3     0                     406 kHz
-#define RADIOLIB_LR2021_LORA_BW_203                             (0x0DUL << 0)   //  3     0                     203 kHz
-#define RADIOLIB_LR2021_LORA_BW_101                             (0x0CUL << 0)   //  3     0                     101 kHz
+#define RADIOLIB_LR2021_LORA_BW_10                              (0x08UL << 0)   //  7     0                     10.42 kHz ?
+#define RADIOLIB_LR2021_LORA_BW_20                              (0x09UL << 0)   //  7     0                     20.83 kHz ?
+#define RADIOLIB_LR2021_LORA_BW_41                              (0x0AUL << 0)   //  3     0                     41.67 kHz
+#define RADIOLIB_LR2021_LORA_BW_83                              (0x0BUL << 0)   //  3     0                     83.34 kHz
+#define RADIOLIB_LR2021_LORA_BW_101                             (0x0CUL << 0)   //  3     0                     101.5625 kHz
+#define RADIOLIB_LR2021_LORA_BW_203                             (0x0DUL << 0)   //  3     0                     203.125 kHz
+#define RADIOLIB_LR2021_LORA_BW_406                             (0x0EUL << 0)   //  3     0                     406.25 kHz
+#define RADIOLIB_LR2021_LORA_BW_812                             (0x0FUL << 0)   //  3     0                     812.5 kHz
 #define RADIOLIB_LR2021_LORA_CR_4_5                             (0x01UL << 0)   //  3     0     LoRa coding rate: 4/5
 #define RADIOLIB_LR2021_LORA_CR_4_6                             (0x02UL << 0)   //  3     0                       4/6
 #define RADIOLIB_LR2021_LORA_CR_4_7                             (0x03UL << 0)   //  3     0                       4/7
@@ -529,6 +533,9 @@
 #define RADIOLIB_LR2021_TX_TEST_MODE_INF_PREAMBLE               (0x01UL << 0)   //  7     0                   infinite preamble
 #define RADIOLIB_LR2021_TX_TEST_MODE_CW                         (0x02UL << 0)   //  7     0                   continuous wave
 #define RADIOLIB_LR2021_TX_TEST_MODE_PRBS9                      (0x03UL << 0)   //  7     0                   pseudo-random bits
+
+#define RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK        (0x0FUL << 20 )
+#define RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK        (0x0FUL << 16 )
 
 #endif
 

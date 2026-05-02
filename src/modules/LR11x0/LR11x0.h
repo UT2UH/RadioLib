@@ -248,9 +248,9 @@ class LR11x0: public LRxxxx {
     // configuration methods
 
     /*!
-      \brief Sets LoRa bandwidth. Allowed values are 62.5, 125.0, 250.0 and 500.0 kHz. (default, high = false)
+      \brief Sets LoRa bandwidth. Allowed values are 7.8, 10.42, 15.6, 20.83, 31.25, 41.67, 62.5, 83.34, 125.0, 250.0, 500.0 and 1000.0 kHz. (default, high = false)
       \param bw LoRa bandwidth to be set in kHz.
-      \param high if set to true, allowed bandwidth is 203.125, 406.25 and 812.5 kHz, frequency must be above 1GHz
+      \param high if set to true, allowed bandwidth is 101.5625, 203.125, 406.25 and 812.5 kHz, frequency must be above 1GHz
       \returns \ref status_codes
     */
     int16_t setBandwidth(float bw, bool high = false);

@@ -13,7 +13,11 @@ int16_t LR2021::setOqpskParams(uint8_t mode, uint8_t rxBw, uint8_t payloadLen, u
     (uint8_t)((preambleLen >> 8) & 0xFF), (uint8_t)(preambleLen & 0xFF),
     (uint8_t)((uint8_t)addrFilt << 1 | (uint8_t)fcsManual),
   };
-  return(this->SPIcommand(RADIOLIB_LR2021_CMD_SET_OQPSK_PARAMS, true, buff, sizeof(buff)));
+  int16_t state = this->SPIcommand(RADIOLIB_LR2021_CMD_SET_OQPSK_PARAMS, true, buff, sizeof(buff));
+  if (!this->regulatorLDO && !this->highFreq) {
+    state = this->workaroundDCDCconfigure();
+  }
+  return(state);
 }
 
 int16_t LR2021::getOqpskRxStats(uint16_t* packetRx, uint16_t* crcError, uint16_t* lenError) {

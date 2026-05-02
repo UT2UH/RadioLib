@@ -224,6 +224,18 @@ int16_t LR2021::setBandwidth(float bw) {
 
   // check allowed bandwidth values
   switch (bw_div2)  {
+    case 3:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_7;
+      break;
+    case 5:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_10;
+      break;      
+    case 7:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_15;
+      break;
+    case 10:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_20;
+      break;        
     case 15:
       this->bandwidth = RADIOLIB_LR2021_LORA_BW_31;
       break;
@@ -983,6 +995,14 @@ int16_t LR2021::implicitHeader(size_t len) {
 
 int16_t LR2021::explicitHeader() {
   return(this->setLoRaHeaderType(RADIOLIB_LR2021_LORA_HEADER_EXPLICIT));
+}
+
+int16_t LR2021::setRegulatorLDO() {
+  return(this->setRegMode(RADIOLIB_LR2021_REG_MODE_SIMO_OFF));
+}
+
+int16_t LR2021::setRegulatorDCDC() {
+  return(this->setRegMode(RADIOLIB_LR2021_REG_MODE_SIMO_NORMAL));
 }
 
 int16_t LR2021::setNodeAddress(uint8_t nodeAddr) {
