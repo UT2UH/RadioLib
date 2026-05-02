@@ -614,7 +614,7 @@ uint32_t LR2021::pll_step_to_hz( uint32_t pll_steps ) {
 int16_t LR2021::workaroundDCDCCgetRfFrequency(uint32_t* frequency ) {
     int16_t state = RADIOLIB_ERR_NONE;
     uint32_t raw_rf_freq = 0;
-    state = this->writeRegMem32(RADIOLIB_LR2021_REG_RTTOF_RF_FREQ, &raw_rf_freq, 1 );
+    state = this->readRegMem32(RADIOLIB_LR2021_REG_RTTOF_RF_FREQ, &raw_rf_freq, 1 );
     RADIOLIB_ASSERT(state);
     *frequency = this->pll_step_to_hz( raw_rf_freq );
     return(state);
@@ -643,12 +643,12 @@ int16_t LR2021::workaroundDCDCreset() {
 int16_t LR2021::workaroundDCDCconfigure() {
     int16_t state = RADIOLIB_ERR_NONE;
     uint32_t adc_ctrl_raw = 0;
-    state = this->writeRegMem32(RADIOLIB_LR2021_REG_DCDC_ADC_CTRL, &adc_ctrl_raw, 1 );
+    state = this->readRegMem32(RADIOLIB_LR2021_REG_DCDC_ADC_CTRL, &adc_ctrl_raw, 1 );
     RADIOLIB_ASSERT(state);
     const uint32_t ana_dec = ( adc_ctrl_raw >> 8 ) & 0x7;
 
     uint32_t rx_path_raw = 0;
-    state = this->writeRegMem32(RADIOLIB_LR2021_REG_DCDC_RX_PATH, &rx_path_raw, 1 );
+    state = this->readRegMem32(RADIOLIB_LR2021_REG_DCDC_RX_PATH, &rx_path_raw, 1 );
     RADIOLIB_ASSERT(state);
     const bool is_rx_hf = ( ( rx_path_raw & 0x3 ) == 1 );
 
@@ -707,11 +707,8 @@ int16_t LR2021::modSetup(float freq, float tcxoVoltage, bool useRegulatorLDO, ui
   // configure settings not accessible by API
   state = config(modem);
   RADIOLIB_ASSERT(state);
-  if (!useRegulatorLDO && freq < RADIOLIB_LR2021_LF_CUTOFF_FREQ) {
-    // Apply DCDC workaround - reset DC-DC to a default frequency
-    state = workaroundDCDCreset();
-    RADIOLIB_ASSERT(state);
-  }
+  // state = this->workaroundDCDCreset();
+  // RADIOLIB_ASSERT(state);
 
   if (useRegulatorLDO) {
     state = setRegulatorLDO();
