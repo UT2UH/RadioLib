@@ -606,8 +606,8 @@ int16_t LR2021::setModem(ModemType_t modem) {
 }
 
 uint32_t LR2021::pll_step_to_hz( uint32_t pll_steps ) {
-    const uint_least64_t numerator   = ( ( uint_least64_t ) pll_steps * ( uint_least64_t ) 15625ULL );
-    const uint_least64_t denominator = ( ( uint_least64_t ) ( 1 << 14 ) );  // 1<<14 is 2**14
+    const uint64_t numerator   = ( ( uint64_t ) pll_steps * ( uint64_t ) 15625ULL );
+    const uint64_t denominator = ( ( uint64_t ) ( 1 << 14 ) );  // 1<<14 is 2**14
     return ( uint32_t ) ( ( numerator + denominator - 1 ) / denominator );
 }
 
@@ -615,7 +615,7 @@ int16_t LR2021::workaroundDCDCCgetRfFrequency(uint32_t* frequency ) {
     int16_t state = RADIOLIB_ERR_NONE;
     uint32_t raw_rf_freq = 0;
     state = this->readRegMem32(RADIOLIB_LR2021_REG_RTTOF_RF_FREQ, &raw_rf_freq, 1 );
-    RADIOLIB_ASSERT(state);
+    //RADIOLIB_ASSERT(state);
     *frequency = this->pll_step_to_hz( raw_rf_freq );
     return(state);
 }
@@ -628,15 +628,15 @@ int16_t LR2021::workaroundDCDCsetFrequency(uint32_t frequency ) {
     uint32_t rf_frequency = 0;
     state = this->workaroundDCDCCgetRfFrequency(&rf_frequency );
     RADIOLIB_ASSERT(state);
-    return (this->setRfFrequency(rf_frequency));
+    return (setRfFrequency(rf_frequency));
 }
 
 int16_t LR2021::workaroundDCDCreset() {
     int16_t state = RADIOLIB_ERR_NONE;
     state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK, 15 << 20 );
-    RADIOLIB_ASSERT(state);
+    //RADIOLIB_ASSERT(state);
     state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK, 15 << 16 );
-    RADIOLIB_ASSERT(state);
+    //RADIOLIB_ASSERT(state);
     return (this->workaroundDCDCsetFrequency(2800000));
 }
 
@@ -644,24 +644,24 @@ int16_t LR2021::workaroundDCDCconfigure() {
     int16_t state = RADIOLIB_ERR_NONE;
     uint32_t adc_ctrl_raw = 0;
     state = this->readRegMem32(RADIOLIB_LR2021_REG_DCDC_ADC_CTRL, &adc_ctrl_raw, 1 );
-    RADIOLIB_ASSERT(state);
+    //RADIOLIB_ASSERT(state);
     const uint32_t ana_dec = ( adc_ctrl_raw >> 8 ) & 0x7;
 
     uint32_t rx_path_raw = 0;
     state = this->readRegMem32(RADIOLIB_LR2021_REG_DCDC_RX_PATH, &rx_path_raw, 1 );
-    RADIOLIB_ASSERT(state);
+    //RADIOLIB_ASSERT(state);
     const bool is_rx_hf = ( ( rx_path_raw & 0x3 ) == 1 );
 
     if( ( is_rx_hf == false ) && ( ( ana_dec == 1 ) || ( ana_dec == 2 ))) {
         state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK, 11 << 20 );
-        RADIOLIB_ASSERT(state);
+        //RADIOLIB_ASSERT(state);
         state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK, 13 << 16 );
-        RADIOLIB_ASSERT(state);
+        //RADIOLIB_ASSERT(state);
     } else {
         state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK, 15 << 20 );
-        RADIOLIB_ASSERT(state);
+        //RADIOLIB_ASSERT(state);
         state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK, 15 << 16 );
-        RADIOLIB_ASSERT(state);
+        //RADIOLIB_ASSERT(state);
     }
 
     return (this->workaroundDCDCsetFrequency(ana_dec == 1 ? 4300000 : 2800000 ));
@@ -693,9 +693,34 @@ int16_t LR2021::modSetup(float freq, float tcxoVoltage, bool useRegulatorLDO, ui
     return(RADIOLIB_ERR_CHIP_NOT_FOUND);
   }
   RADIOLIB_DEBUG_BASIC_PRINTLN("M\tLR2021");
+  // Workaround SIMO
+  const uint32_t freq_val = 2.8e6 * 1.048576f;
+  int16_t state = this->writeRegMem32(RADIOLIB_LR2021_REG_DCDC_FREQ_LF, &freq_val, 1 );
+  RADIOLIB_ASSERT(state);
 
+  if (useRegulatorLDO) {
+    this->regulatorLDO = true;
+    state = setRegulatorLDO();
+  } else {
+    this->regulatorLDO = false;
+    //state = workaroundDCDCreset();
+    //RADIOLIB_ASSERT(state);
+    state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_RISE_REGISTER_MASK, 15 << 20 );
+    RADIOLIB_ASSERT(state);
+    state = this->writeRegMemMask32(RADIOLIB_LR2021_REG_DCDC_SWITCHER, RADIOLIB_LR2021_DCDC_SWITCHER_FALL_REGISTER_MASK, 15 << 16 );
+    RADIOLIB_ASSERT(state);
+    // state = this->workaroundDCDCsetFrequency(2800000);
+    // RADIOLIB_ASSERT(state); 
+    state = this->setRegulatorDCDC();
+  }
+  RADIOLIB_ASSERT(state);
+
+  state = configLfClock(RADIOLIB_LR2021_LF_CLOCK_INTERNAL_RC);
+  RADIOLIB_ASSERT(state);
+
+  this->mod->hal->delay(10);
   // set mode to standby
-  int16_t state = standby();
+  state = standby();
   RADIOLIB_ASSERT(state);
 
   // set TCXO control, if requested
@@ -706,17 +731,6 @@ int16_t LR2021::modSetup(float freq, float tcxoVoltage, bool useRegulatorLDO, ui
 
   // configure settings not accessible by API
   state = config(modem);
-  RADIOLIB_ASSERT(state);
-  // state = this->workaroundDCDCreset();
-  // RADIOLIB_ASSERT(state);
-
-  if (useRegulatorLDO) {
-    state = setRegulatorLDO();
-    this->regulatorLDO = true;
-  } else {
-    state = setRegulatorDCDC();
-    this->regulatorLDO = false;
-  }
   RADIOLIB_ASSERT(state);
 
   state = setFrequency(freq);
