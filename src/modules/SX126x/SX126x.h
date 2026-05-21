@@ -8,7 +8,7 @@
 #include "../../Module.h"
 
 #include "../../protocols/PhysicalLayer/PhysicalLayer.h"
-#include "../../utils/FEC.h"
+#include "../../utils/ConvCode.h"
 #include "../../utils/CRC.h"
 
 #include "SX126x_commands.h"
@@ -42,6 +42,7 @@ class SX126x: public PhysicalLayer {
     using PhysicalLayer::startTransmit;
     using PhysicalLayer::startReceive;
     using PhysicalLayer::readData;
+    using PhysicalLayer::setOutputPower;
 
     /*!
       \struct paTableEntry_t
@@ -934,7 +935,6 @@ class SX126x: public PhysicalLayer {
     int16_t modSetup(float tcxoVoltage, bool useRegulatorLDO, uint8_t modem);
     int16_t config(uint8_t modem);
     bool findChip(const char* verStr);
-    int16_t startReceiveCommon(uint32_t timeout = RADIOLIB_SX126X_RX_TIMEOUT_INF, RadioLibIrqFlags_t irqFlags = RADIOLIB_IRQ_RX_DEFAULT_FLAGS, RadioLibIrqFlags_t irqMask = RADIOLIB_IRQ_RX_DEFAULT_MASK);
     int16_t setPacketMode(uint8_t mode, uint8_t len);
     int16_t setHeaderType(uint8_t hdrType, size_t len = 0xFF);
     int16_t directMode();
