@@ -138,6 +138,9 @@ int16_t LR2021::setFrequency(float freq, bool skipCalibration) {
   RADIOLIB_ASSERT(state);
   this->freqMHz = freq;
   this->highFreq = (freq > RADIOLIB_LR2021_LF_CUTOFF_FREQ);
+  
+  // set the correct Rx path
+  state = setRxPath(this->highFreq ? RADIOLIB_LR2021_RX_PATH_HF : RADIOLIB_LR2021_RX_PATH_LF, this->highFreq ? this->gainModeHf : this->gainModeLf);          
   return(state);
 }
 
