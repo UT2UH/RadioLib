@@ -576,7 +576,7 @@ int16_t LR11x0::setBandwidth(float bw, bool high) {
     RADIOLIB_CHECK_RANGE(bw, 0.0f, 510.0f, RADIOLIB_ERR_INVALID_BANDWIDTH);
   }
   // check allowed bandwidth values
-  uint8_t bw_div2 = bw / 2 + 0.01f;
+  uint16_t bw_div2 = bw / 2 + 0.01f;
   switch (bw_div2)  {
     case 3: // 7.8
       this->bandwidth = RADIOLIB_LR11X0_LORA_BW_7_8;
