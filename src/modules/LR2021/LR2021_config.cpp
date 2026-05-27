@@ -138,6 +138,9 @@ int16_t LR2021::setFrequency(float freq, bool skipCalibration) {
   RADIOLIB_ASSERT(state);
   this->freqMHz = freq;
   this->highFreq = (freq > RADIOLIB_LR2021_LF_CUTOFF_FREQ);
+  
+  // set the correct Rx path
+  state = setRxPath(this->highFreq ? RADIOLIB_LR2021_RX_PATH_HF : RADIOLIB_LR2021_RX_PATH_LF, this->highFreq ? this->gainModeHf : this->gainModeLf);
   return(state);
 }
 
@@ -238,6 +241,18 @@ int16_t LR2021::setBandwidth(float bw) {
 
   // check allowed bandwidth values
   switch (bw_div2)  {
+    case 3:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_7;
+      break;
+    case 5:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_10;
+      break;      
+    case 7:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_15;
+      break;
+    case 10:
+      this->bandwidth = RADIOLIB_LR2021_LORA_BW_20;
+      break;    
     case 15:
       this->bandwidth = RADIOLIB_LR2021_LORA_BW_31;
       break;

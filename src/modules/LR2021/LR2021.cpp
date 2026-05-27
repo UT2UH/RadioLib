@@ -965,24 +965,13 @@ int16_t LR2021::stageMode(RadioModeType_t mode, RadioModeConfig_t* cfg) {
         (modem != RADIOLIB_LR2021_PACKET_TYPE_OOK)) {
         return(RADIOLIB_ERR_WRONG_MODEM);
       }
-      
-      // set the correct Rx path
-      state = setRxPath(this->highFreq ? RADIOLIB_LR2021_RX_PATH_HF : RADIOLIB_LR2021_RX_PATH_LF, this->highFreq ? this->gainModeHf : this->gainModeLf);
-      RADIOLIB_ASSERT(state);
-
-      // set DIO mapping
-      if(cfg->receive.timeout != RADIOLIB_LR2021_RX_TIMEOUT_INF) {
-        cfg->receive.irqMask |= (1UL << RADIOLIB_IRQ_TIMEOUT);
-      }
-      state = setDioIrqConfig(this->irqDioNum, getIrqMapped(cfg->receive.irqFlags & cfg->receive.irqMask));
-      RADIOLIB_ASSERT(state);
 
       // clear interrupt flags
       state = clearIrqState(RADIOLIB_LR2021_IRQ_ALL);
       RADIOLIB_ASSERT(state);
 
       // set implicit mode and expected len if applicable
-      if((this->headerType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT) && (modem == RADIOLIB_LR2021_PACKET_TYPE_LORA)) {
+      if(modem == RADIOLIB_LR2021_PACKET_TYPE_LORA) {
         state = setLoRaPacketParams(this->preambleLengthLoRa, this->headerType, 
           (this->headerType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH, this->crcTypeLoRa, this->invertIQEnabled);
         RADIOLIB_ASSERT(state);
@@ -1062,6 +1051,8 @@ int16_t LR2021::launchMode() {
     case(RADIOLIB_RADIO_MODE_RX): {
       this->mod->setRfSwitchState(Module::MODE_RX);
       state = setRx(this->rxTimeout);
+      RADIOLIB_ASSERT(state);
+      state = clearRxFifo();      
     } break;
   
     case(RADIOLIB_RADIO_MODE_TX): {
