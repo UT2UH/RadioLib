@@ -267,7 +267,7 @@ int16_t LR2021::transmit(const uint8_t* data, size_t len, uint8_t addr) {
     }
 
     // Long Interleaver supports up to 253 bytes if CRC is enabled
-    if (this->crcTypeLoRa == RADIOLIB_LR2021_LORA_CRC_ENABLED && (len > RADIOLIB_LR2021_MAX_PACKET_LENGTH - 2)) {
+    if (this->crcTypeLoRa == RADIOLIB_LRXXXX_LORA_CRC_ENABLED && (len > RADIOLIB_LR2021_MAX_PACKET_LENGTH - 2)) {
       return(RADIOLIB_ERR_PACKET_TOO_LONG);
     }  
   } 
@@ -483,7 +483,7 @@ size_t LR2021::getPacketLength(bool update) {
   // in implicit mode, return the cached value
   uint8_t type = RADIOLIB_LR2021_PACKET_TYPE_NONE;
   (void)getPacketType(&type);
-  if((type == RADIOLIB_LR2021_PACKET_TYPE_LORA) && (this->headerType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT)) {
+  if((type == RADIOLIB_LR2021_PACKET_TYPE_LORA) && (this->headerType == RADIOLIB_LRXXXX_LORA_HEADER_IMPLICIT)) {
     return(this->implicitLen);
   }
 
@@ -586,7 +586,7 @@ int16_t LR2021::readData(uint8_t* data, size_t len) {
 
   // for LoRa modem and explicit header mode, check also also header valid flag
   if((modem == RADIOLIB_LR2021_PACKET_TYPE_LORA) &&
-     (this->headerType == RADIOLIB_LR2021_LORA_HEADER_EXPLICIT) && 
+     (this->headerType == RADIOLIB_LRXXXX_LORA_HEADER_EXPLICIT) && 
      (!(irq & RADIOLIB_LR2021_IRQ_LORA_HEADER_VALID))) {
     crcState = RADIOLIB_ERR_LORA_HEADER_DAMAGED;
   }
@@ -966,16 +966,54 @@ int16_t LR2021::stageMode(RadioModeType_t mode, RadioModeConfig_t* cfg) {
         return(RADIOLIB_ERR_WRONG_MODEM);
       }
 
+      // in implicit LoRa header mode, use the provided length if it is nonzero
+      // otherwise we trust the user has previously set the payload length manually
+      if((this->headerType == RADIOLIB_LRXXXX_LORA_HEADER_IMPLICIT) && 
+        (modem == RADIOLIB_LR2021_PACKET_TYPE_LORA) && 
+        (cfg->receive.len != 0)) {
+        this->implicitLen = cfg->receive.len;
+      }
+      
+      // // set the correct Rx path
+      // state = setRxPath(this->highFreq ? RADIOLIB_LR2021_RX_PATH_HF : RADIOLIB_LR2021_RX_PATH_LF, this->highFreq ? this->gainModeHf : this->gainModeLf);
+      // RADIOLIB_ASSERT(state);
+
+      // // set DIO mapping
+      // if(cfg->receive.timeout != RADIOLIB_LR2021_RX_TIMEOUT_INF) {
+      //   cfg->receive.irqMask |= (1UL << RADIOLIB_IRQ_TIMEOUT);
+      // }
+      // state = setDioIrqConfig(this->irqDioNum, getIrqMapped(cfg->receive.irqFlags & cfg->receive.irqMask));
+      // RADIOLIB_ASSERT(state);
+
       // clear interrupt flags
       state = clearIrqState(RADIOLIB_LR2021_IRQ_ALL);
       RADIOLIB_ASSERT(state);
 
-      // set implicit mode and expected len if applicable
+      // restore maximum allowed received packet length (may have been changed by previous Tx)
       if(modem == RADIOLIB_LR2021_PACKET_TYPE_LORA) {
         state = setLoRaPacketParams(this->preambleLengthLoRa, this->headerType, 
-          (this->headerType == RADIOLIB_LR2021_LORA_HEADER_IMPLICIT) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH, this->crcTypeLoRa, this->invertIQEnabled);
-        RADIOLIB_ASSERT(state);
+          (this->headerType == RADIOLIB_LRXXXX_LORA_HEADER_IMPLICIT) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH, 
+          this->crcTypeLoRa, this->invertIQEnabled);
+
+      } else if(modem == RADIOLIB_LR2021_PACKET_TYPE_GFSK) {
+        state = setGfskPacketParams(this->preambleLengthGFSK, this->preambleDetLength, false, false, this->addrComp, this->packetType,
+          (this->packetType == RADIOLIB_LR2021_GFSK_OOK_PACKET_FORMAT_FIXED) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH, 
+          this->crcTypeGFSK, this->whitening);
+
+      } else if(modem == RADIOLIB_LR2021_PACKET_TYPE_OOK) {
+        state = setOokPacketParams(this->preambleLengthGFSK, this->addrComp, this->packetType,
+          (this->packetType == RADIOLIB_LR2021_GFSK_OOK_PACKET_FORMAT_FIXED) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH,
+          this->crcTypeGFSK, this->whitening);
+
+      } else if(modem == RADIOLIB_LR2021_PACKET_TYPE_FLRC) {
+        state = setFlrcPacketParams(this->preambleLengthGFSK, this->syncWordLength, 1, 0x01, this->packetType == RADIOLIB_LR2021_GFSK_OOK_PACKET_FORMAT_FIXED, this->crcLenGFSK,
+          (this->packetType == RADIOLIB_LR2021_GFSK_OOK_PACKET_FORMAT_FIXED) ? this->implicitLen : RADIOLIB_LR2021_MAX_PACKET_LENGTH);
+      
+      } else {
+        return(RADIOLIB_ERR_WRONG_MODEM);
       }
+      
+      RADIOLIB_ASSERT(state);
 
       // if max(uint32_t) is used, revert to RxContinuous
       if(cfg->receive.timeout == 0xFFFFFFFF) {
@@ -1009,7 +1047,7 @@ int16_t LR2021::stageMode(RadioModeType_t mode, RadioModeConfig_t* cfg) {
       } else if(modem == RADIOLIB_LR2021_PACKET_TYPE_FLRC) {
         state = setFlrcPacketParams(this->preambleLengthGFSK, this->syncWordLength, 1, 0x01, this->packetType == RADIOLIB_LR2021_GFSK_OOK_PACKET_FORMAT_FIXED, this->crcLenGFSK, cfg->transmit.len);
       
-      } else {
+      } else if(modem != RADIOLIB_LR2021_PACKET_TYPE_LR_FHSS) {
         return(RADIOLIB_ERR_WRONG_MODEM);
       }
 
