@@ -232,7 +232,7 @@
   // ESP8266 boards
   #define RADIOLIB_PLATFORM                           "ESP8266"
 
-#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32) || defined(ESP_PLATFORM)
+#elif defined(ESP32) || defined(ARDUINO_ARCH_ESP32)
   #define RADIOLIB_ESP32
 
   // ESP32 boards
@@ -485,6 +485,27 @@
 
   #include <stdint.h>
 
+#elif defined(ESP_PLATFORM)
+  // ESP-IDF (non-Arduino) build
+  #define RADIOLIB_PLATFORM                           "ESP-IDF"
+  #define RADIOLIB_ESP32
+
+  // ESP32 doesn't support tone(), but it can be emulated via LED control peripheral
+  #define RADIOLIB_TONE_UNSUPPORTED
+
+  #define RADIOLIB_NC                                 (0xFFFFFFFF)
+  #define RADIOLIB_NONVOLATILE
+  #define RADIOLIB_NONVOLATILE_READ_BYTE(addr)        (*(reinterpret_cast<uint8_t *>(reinterpret_cast<void *>(addr))))
+  #define RADIOLIB_NONVOLATILE_READ_DWORD(addr)       (*(reinterpret_cast<uint32_t *>(reinterpret_cast<void *>(addr))))
+  #define RADIOLIB_TYPE_ALIAS(type, alias)            using alias = type;
+
+  #define DEC 10
+  #define HEX 16
+  #define OCT 8
+  #define BIN 2
+
+  #include <stdint.h>
+
 #else
   // generic non-Arduino platform
   #define RADIOLIB_PLATFORM                           "Generic"
@@ -512,7 +533,10 @@
 
 // if verbose assert is enabled, enable basic debug too
 #if RADIOLIB_VERBOSE_ASSERT
-  #define RADIOLIB_DEBUG  (1)
+  #if defined(RADIOLIB_DEBUG_BASIC)
+  #undef RADIOLIB_DEBUG_BASIC
+  #endif
+  #define RADIOLIB_DEBUG_BASIC (1)
 #endif
 
 // set the global debug mode flag

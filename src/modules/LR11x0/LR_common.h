@@ -98,17 +98,6 @@ class LRxxxx: public PhysicalLayer {
     */
     int16_t reset();
 
-        /*!
-      \brief Sets interrupt service routine to call when IRQ1 activates.
-      \param func ISR to call.
-    */
-    void setIrqAction(void (*func)(void));
-
-    /*!
-      \brief Clears interrupt service routine to call when IRQ1 activates.
-    */
-    void clearIrqAction();
-
     /*!
       \brief Sets interrupt service routine to call when a packet is received.
       \param func ISR to call.
@@ -156,6 +145,10 @@ class LRxxxx: public PhysicalLayer {
 
   protected:
     Module* mod;
+    
+    // flag to determine whether we are in the sub-GHz or 2.4 GHz range
+    // this is needed to automatically detect which PA to use
+    bool highFreq = false;
     
     float freqMHz = 0;
     uint32_t rxTimeout = 0;
